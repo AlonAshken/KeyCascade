@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Sparkles,
   Film,
+  FolderOpen,
 } from 'lucide-react';
 import {
   ExportConfig,
@@ -48,6 +49,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const [exportFullSong, setExportFullSong] = useState(true);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(duration);
+  const [customFileName, setCustomFileName] = useState('');
+  const [savedLocationMsg, setSavedLocationMsg] = useState<string | null>(null);
 
   // Synchronize duration when song changes or modal opens
   useEffect(() => {
@@ -71,19 +74,31 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   const [downloadBlob, setDownloadBlob] = useState<{ blob: Blob; url: string } | null>(null);
 
-  if (!isOpen) return null;
+  const getResolutionDimensions = (res: ExportResolution) => {
+    switch (res) {
+      case '4k':
+        return { width: 3840, height: 2160, bitrate: 45_000_000, label: '4K Ultra HD (3840×2160)' };
+      case '720p':
+        return { width: 1280, height: 720, bitrate: 6_000_000, label: '720p HD (1280×720)' };
+      case '1080p':
+      default:
+        return { width: 1920, height: 1080, bitrate: 18_000_000, label: '1080p Full HD (1920×1080)' };
+    }
+  };
 
-  const resDims = {
-    '4k': { width: 3840, height: 2160, bitrate: 45_000_000 },
-    '1080p': { width: 1920, height: 1080, bitrate: 18_000_000 },
-    '720p': { width: 1280, height: 720, bitrate: 8_000_000 },
-  }[resolution];
+  const resDims = getResolutionDimensions(resolution);
+
+  const getDefaultFileName = () => {
+    const cleanTitle = (songTitle || 'Piano_Visualizer').replace(/[^a-zA-Z0-9_-]/g, '_');
+    return `KeyCascade_${cleanTitle}_${resolution}_${fps}fps.${format}`;
+  };
 
   const handleStartExport = async () => {
+    setSavedLocationMsg(null);
     setDownloadBlob(null);
 
-    const actualStart = exportFullSong ? 0 : startTime;
-    const actualEnd = exportFullSong ? duration : Math.max(actualStart + 1.0, endTime);
+    const actualStart = exportFullSong ? 0 : Math.max(0, startTime);
+    const actualEnd = exportFullSong ? duration : Math.min(duration, Math.max(actualStart + 1.0, endTime));
 
     const config: ExportConfig = {
       resolution,
@@ -137,21 +152,67 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     videoExporter.cancel();
   };
 
-  const handleDownload = () => {
+  /**
+   * Save As... (Allows user to select exact folder & location via Native File System API)
+   */
+  const handleSaveAs = async () => {
     if (!downloadBlob) return;
-    const cleanTitle = (songTitle || 'Piano_Visualizer').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFileName.trim() || getDefaultFileName();
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [
+            {
+              description: format === 'mp4' ? 'MP4 Video (*.mp4)' : 'WebM Video (*.webm)',
+              accept: {
+                [format === 'mp4' ? 'video/mp4' : 'video/webm']: [`.${format}`],
+              },
+            },
+          ],
+        });
+
+        const writable = await handle.createWritable();
+        await writable.write(downloadBlob.blob);
+        await writable.close();
+
+        setSavedLocationMsg(`Saved successfully to chosen location as "${handle.name}"!`);
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          // User closed the file picker
+          return;
+        }
+        console.warn('Native showSaveFilePicker failed, falling back to download:', err);
+      }
+    }
+
+    // Fallback for browsers without File System Access API
+    handleQuickDownload();
+  };
+
+  /**
+   * Quick download to browser's default Downloads directory
+   */
+  const handleQuickDownload = () => {
+    if (!downloadBlob) return;
+    const fileName = customFileName.trim() || getDefaultFileName();
     const a = document.createElement('a');
     a.href = downloadBlob.url;
-    a.download = `KeyCascade_${cleanTitle}_${resolution}_${fps}fps.${format}`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setSavedLocationMsg(`Saved to your browser's Downloads folder as "${fileName}"`);
   };
 
   const effectiveStart = exportFullSong ? 0 : startTime;
   const effectiveEnd = exportFullSong ? duration : Math.max(effectiveStart + 1.0, endTime);
   const exportDuration = Math.max(1, Math.round(effectiveEnd - effectiveStart));
   const estimatedFrames = exportDuration * fps;
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 select-none animate-in fade-in duration-150">
@@ -181,145 +242,172 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           )}
         </div>
 
-        {/* Body Content */}
-        <div className="p-5 space-y-5">
-          {/* Phase 1: Configuration */}
+        {/* Modal Body */}
+        <div className="p-5 space-y-4">
+          {/* Phase 1: Configuration Form */}
           {!progress.isExporting && progress.phase !== 'completed' && (
             <>
-              {/* Resolution selection */}
+              {/* Resolution Selector */}
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-2 font-semibold">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   Resolution
                 </label>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  {[
-                    { id: '1080p', label: '1080p Full HD', dims: '1920×1080', badge: 'Recommended' },
-                    { id: '4k', label: '4K Ultra HD', dims: '3840×2160', badge: 'Cinema 4K' },
-                    { id: '720p', label: '720p Fast', dims: '1280×720', badge: 'Fast Preview' },
-                  ].map((res) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {(['1080p', '4k', '720p'] as ExportResolution[]).map((res) => (
                     <button
-                      key={res.id}
-                      onClick={() => setResolution(res.id as ExportResolution)}
-                      className={`p-2.5 rounded-lg border text-left flex flex-col justify-between transition-all ${
-                        resolution === res.id
-                          ? 'bg-cyan-950/70 border-cyan-500 text-white shadow-md shadow-cyan-500/20'
-                          : 'bg-[#141724] border-[#222738] text-slate-300 hover:bg-[#1a1e2e]'
+                      key={res}
+                      onClick={() => setResolution(res)}
+                      className={`py-2 px-2.5 rounded-lg border text-xs font-medium transition-all ${
+                        resolution === res
+                          ? 'bg-cyan-950/80 border-cyan-500 text-cyan-200 shadow-md shadow-cyan-500/20'
+                          : 'bg-[#161a29] border-[#252a3d] text-slate-300 hover:text-white'
                       }`}
                     >
-                      <span className="font-bold text-xs">{res.label}</span>
-                      <span className="text-[10px] text-slate-400 font-mono mt-0.5">{res.dims}</span>
-                      <span className="text-[9px] text-cyan-400 font-mono mt-1">{res.badge}</span>
+                      <div className="font-bold">{res.toUpperCase()}</div>
+                      <div className="text-[10px] text-slate-400">
+                        {res === '4k' ? '3840×2160' : res === '1080p' ? '1920×1080' : '1280×720'}
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Framerate & Container Format */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                {/* FPS */}
+              {/* Framerate & Format */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1.5 font-semibold">
-                    Frame Rate
+                  <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Framerate
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {[60, 30].map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => setFps(f as 60 | 30)}
-                        className={`py-2 rounded-md font-mono text-center border transition-all ${
-                          fps === f
-                            ? 'bg-cyan-950/70 border-cyan-500 text-cyan-300 font-bold'
-                            : 'bg-[#141724] border-[#222738] text-slate-300'
-                        }`}
-                      >
-                        {f} FPS
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => setFps(60)}
+                      className={`py-1.5 rounded border text-xs font-semibold ${
+                        fps === 60
+                          ? 'bg-fuchsia-950/80 border-fuchsia-500 text-fuchsia-200'
+                          : 'bg-[#161a29] border-[#252a3d] text-slate-300'
+                      }`}
+                    >
+                      60 FPS
+                    </button>
+                    <button
+                      onClick={() => setFps(30)}
+                      className={`py-1.5 rounded border text-xs font-semibold ${
+                        fps === 30
+                          ? 'bg-fuchsia-950/80 border-fuchsia-500 text-fuchsia-200'
+                          : 'bg-[#161a29] border-[#252a3d] text-slate-300'
+                      }`}
+                    >
+                      30 FPS
+                    </button>
                   </div>
                 </div>
 
-                {/* Format */}
                 <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1.5 font-semibold">
+                  <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                     Container Format
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'mp4', label: 'MP4 (H.264)' },
-                      { id: 'webm', label: 'WebM (VP9)' },
-                    ].map((fmt) => (
-                      <button
-                        key={fmt.id}
-                        onClick={() => setFormat(fmt.id as ExportFormat)}
-                        className={`py-2 rounded-md font-mono text-center border transition-all ${
-                          format === fmt.id
-                            ? 'bg-cyan-950/70 border-cyan-500 text-cyan-300 font-bold'
-                            : 'bg-[#141724] border-[#222738] text-slate-300'
-                        }`}
-                      >
-                        {fmt.label}
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => setFormat('mp4')}
+                      className={`py-1.5 rounded border text-xs font-semibold ${
+                        format === 'mp4'
+                          ? 'bg-cyan-950/80 border-cyan-500 text-cyan-200'
+                          : 'bg-[#161a29] border-[#252a3d] text-slate-300'
+                      }`}
+                    >
+                      MP4 (H.264)
+                    </button>
+                    <button
+                      onClick={() => setFormat('webm')}
+                      className={`py-1.5 rounded border text-xs font-semibold ${
+                        format === 'webm'
+                          ? 'bg-cyan-950/80 border-cyan-500 text-cyan-200'
+                          : 'bg-[#161a29] border-[#252a3d] text-slate-300'
+                      }`}
+                    >
+                      WebM (Alpha)
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Duration & Range Setting */}
-              <div className="p-3 bg-[#131624] border border-[#202538] rounded-lg space-y-2.5">
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="exportFullSong"
-                      checked={exportFullSong}
-                      onChange={(e) => setExportFullSong(e.target.checked)}
-                      className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
-                    />
-                    <label htmlFor="exportFullSong" className="font-semibold text-slate-200 cursor-pointer">
-                      Export Entire Song ({formatTime(duration)})
-                    </label>
+              {/* Duration Scope: Entire Song vs Range */}
+              <div className="p-3 bg-[#131726] border border-[#232840] rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold text-white block">Export Entire Song</span>
+                    <span className="text-[10px] text-slate-400">
+                      Renders from 0:00 to {formatTime(duration)} (full piece)
+                    </span>
                   </div>
-                  <span className="font-mono text-cyan-400 text-[11px]">
-                    {exportDuration}s • {estimatedFrames} frames
-                  </span>
+                  <input
+                    type="checkbox"
+                    checked={exportFullSong}
+                    onChange={(e) => {
+                      setExportFullSong(e.target.checked);
+                      if (e.target.checked) {
+                        setStartTime(0);
+                        setEndTime(duration);
+                      }
+                    }}
+                    className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                  />
                 </div>
 
-                {/* Custom range if not full song */}
                 {!exportFullSong && (
-                  <div className="grid grid-cols-2 gap-3 text-xs pt-1 border-t border-[#1f2334]">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#232840]">
                     <div>
-                      <span className="text-[10px] text-slate-400 block mb-1">Start Time (seconds)</span>
+                      <span className="text-[10px] text-slate-400 block mb-1">
+                        Start Time ({formatTime(startTime)})
+                      </span>
                       <input
-                        type="number"
+                        type="range"
                         min="0"
-                        max={duration}
-                        step="1"
+                        max={duration - 1}
+                        step="0.5"
                         value={startTime}
-                        onChange={(e) => setStartTime(Math.max(0, parseFloat(e.target.value) || 0))}
-                        className="w-full bg-[#1a1e2d] border border-[#2d334d] px-2 py-1 rounded font-mono text-slate-200"
+                        onChange={(e) => setStartTime(parseFloat(e.target.value))}
+                        className="w-full"
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block mb-1">End Time (seconds)</span>
+                      <span className="text-[10px] text-slate-400 block mb-1">
+                        End Time ({formatTime(endTime)})
+                      </span>
                       <input
-                        type="number"
-                        min="1"
+                        type="range"
+                        min={startTime + 1}
                         max={duration}
-                        step="1"
+                        step="0.5"
                         value={endTime}
-                        onChange={(e) => setEndTime(Math.min(duration, parseFloat(e.target.value) || duration))}
-                        className="w-full bg-[#1a1e2d] border border-[#2d334d] px-2 py-1 rounded font-mono text-slate-200"
+                        onChange={(e) => setEndTime(parseFloat(e.target.value))}
+                        className="w-full"
                       />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Notice */}
-              <div className="flex items-start gap-2 text-[11px] text-slate-400 bg-black/40 p-2.5 rounded-md border border-white/5">
-                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              {/* Audio Toggle & Background Mode Notice */}
+              <div className="flex items-center justify-between p-3 bg-[#131726] border border-[#232840] rounded-xl">
+                <div>
+                  <span className="text-xs font-semibold text-white block">Include Synthesized Audio</span>
+                  <span className="text-[10px] text-slate-400">
+                    Offline multi-harmonic grand piano track
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={includeAudio}
+                  onChange={(e) => setIncludeAudio(e.target.checked)}
+                  className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                />
+              </div>
+
+              <div className="p-2.5 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-cyan-400" />
                 <span>
-                  Offline renderer guarantees 0 dropped frames with synchronized audio track. Ready for direct video editing in Premiere, DaVinci Resolve, or YouTube.
+                  Offline rendering processes each frame deterministically. Zero dropped frames, perfect audio-video synchronization, and uncompressed quality.
                 </span>
               </div>
             </>
@@ -327,50 +415,47 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
           {/* Phase 2: Active Export Progress */}
           {progress.isExporting && (
-            <div className="py-6 flex flex-col items-center justify-center space-y-4">
-              <div className="relative w-20 h-20 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full border-4 border-slate-800 border-t-cyan-400 animate-spin" />
-                <span className="absolute font-mono font-bold text-sm text-white">
-                  {progress.percentage}%
-                </span>
-              </div>
-
-              <div className="text-center space-y-1">
-                <p className="text-sm font-semibold text-white">
+            <div className="py-6 space-y-4 text-center">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white capitalize">
                   {progress.phase === 'rendering_audio'
-                    ? 'Rendering Synchronized Grand Piano Audio...'
-                    : 'Encoding 60 FPS Video Frames...'}
+                    ? 'Synthesizing Polyphonic Audio Track...'
+                    : progress.phase === 'encoding_video'
+                    ? 'Rendering & Muxing 60 FPS Frames...'
+                    : 'Finalizing Video File...'}
+                </h3>
+                <p className="text-xs text-cyan-300 font-mono">
+                  Frame {progress.currentFrame} / {progress.totalFrames} ({progress.percentage}%)
                 </p>
-                <p className="text-xs font-mono text-slate-400">
-                  Frame {progress.currentFrame.toLocaleString()} / {progress.totalFrames.toLocaleString()}
-                </p>
-                <div className="flex items-center justify-center gap-3 text-[11px] font-mono text-cyan-300 pt-1">
-                  <span>Speed: {progress.fps} FPS</span>
-                  <span>•</span>
-                  <span>ETA: {progress.estimatedRemainingSec}s</span>
-                </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-[#1a1e2d] h-2 rounded-full overflow-hidden border border-slate-800">
+              <div className="w-full h-2.5 bg-[#1a1e2d] rounded-full overflow-hidden border border-[#2a3047]">
                 <div
-                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-100"
+                  className="h-full bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-purple-600 rounded-full transition-all duration-150"
                   style={{ width: `${progress.percentage}%` }}
                 />
               </div>
 
-              <button
-                onClick={handleCancelExport}
-                className="px-4 py-1.5 rounded-md text-xs font-medium bg-rose-950/60 border border-rose-800/80 text-rose-300 hover:bg-rose-900 transition-all mt-2"
-              >
-                Cancel Export
-              </button>
+              <div className="flex justify-between text-[11px] font-mono text-slate-400 px-1">
+                <span>Encoding speed: {progress.fps} FPS</span>
+                <span>Remaining: ~{Math.ceil(progress.estimatedRemainingSec)}s</span>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleCancelExport}
+                  className="px-4 py-1.5 rounded-md text-xs font-semibold bg-rose-950/80 border border-rose-800 text-rose-300 hover:bg-rose-900 transition-all cursor-pointer"
+                >
+                  Cancel Export
+                </button>
+              </div>
             </div>
           )}
 
           {/* Phase 3: Completed Successfully */}
           {!progress.isExporting && progress.phase === 'completed' && downloadBlob && (
-            <div className="py-6 flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="py-5 flex flex-col items-center justify-center space-y-4 text-center">
               <div className="w-14 h-14 rounded-full bg-emerald-950/80 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
@@ -383,21 +468,59 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              {/* Filename customization */}
+              <div className="w-full max-w-sm text-left px-2">
+                <label className="text-[10px] uppercase font-mono text-slate-400 block mb-1">
+                  Video File Name
+                </label>
+                <input
+                  type="text"
+                  value={customFileName || getDefaultFileName()}
+                  onChange={(e) => setCustomFileName(e.target.value)}
+                  className="w-full bg-[#161a29] border border-[#2d334d] focus:border-cyan-500 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none"
+                />
+              </div>
+
+              {/* Save Location Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm pt-1">
                 <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-lg shadow-cyan-500/30 transition-all active:scale-95 cursor-pointer"
+                  onClick={handleSaveAs}
+                  className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-lg shadow-cyan-500/30 transition-all active:scale-95 cursor-pointer"
+                  title="Choose exact folder location on your computer to save video (Desktop, Videos, external drive, etc.)"
                 >
-                  <Download className="w-4 h-4 text-black" />
-                  <span>Download Video File</span>
+                  <FolderOpen className="w-4 h-4 text-black" />
+                  <span>Choose Save Location...</span>
                 </button>
+
                 <button
-                  onClick={() => setProgress({ ...progress, phase: 'preparing' })}
-                  className="px-3 py-2 rounded-lg text-xs font-medium bg-[#1a1e2d] hover:bg-[#252b40] text-slate-300 border border-[#2d334d] transition-all"
+                  onClick={handleQuickDownload}
+                  className="flex-1 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-[#1a1e2d] hover:bg-[#252b40] text-slate-200 border border-[#2d334d] transition-all cursor-pointer"
+                  title="Save directly to your browser's default Downloads folder"
                 >
-                  Export Another
+                  <Download className="w-4 h-4 text-cyan-400" />
+                  <span>Save to Downloads</span>
                 </button>
               </div>
+
+              {savedLocationMsg ? (
+                <p className="text-[11px] text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-md font-mono">
+                  ✓ {savedLocationMsg}
+                </p>
+              ) : (
+                <p className="text-[10px] text-slate-400 max-w-xs">
+                  💡 Click <strong>Choose Save Location...</strong> to pick any folder on your computer, or <strong>Save to Downloads</strong>.
+                </p>
+              )}
+
+              <button
+                onClick={() => {
+                  setSavedLocationMsg(null);
+                  setProgress({ ...progress, phase: 'preparing' });
+                }}
+                className="text-xs text-slate-400 hover:text-white underline pt-1"
+              >
+                Export Another Video
+              </button>
             </div>
           )}
 
