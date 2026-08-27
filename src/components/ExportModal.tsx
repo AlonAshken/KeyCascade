@@ -13,6 +13,8 @@ import {
   Sparkles,
   Film,
   FolderOpen,
+  Music,
+  VolumeX,
 } from 'lucide-react';
 import {
   ExportConfig,
@@ -390,20 +392,48 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 )}
               </div>
 
-              {/* Audio Toggle & Background Mode Notice */}
-              <div className="flex items-center justify-between p-3 bg-[#131726] border border-[#232840] rounded-xl">
-                <div>
-                  <span className="text-xs font-semibold text-white block">Include Synthesized Audio</span>
-                  <span className="text-[10px] text-slate-400">
-                    Offline multi-harmonic grand piano track
-                  </span>
+              {/* Audio Mode: MIDI Sound vs Video Only */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Audio Output
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIncludeAudio(true)}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      includeAudio
+                        ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md shadow-cyan-500/20'
+                        : 'bg-[#141828] border-[#22283e] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="font-bold text-xs flex items-center gap-1.5 text-cyan-300">
+                      <Music className="w-3.5 h-3.5" />
+                      <span>MIDI Sound</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      Fast synchronized piano audio
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIncludeAudio(false)}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      !includeAudio
+                        ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md shadow-cyan-500/20'
+                        : 'bg-[#141828] border-[#22283e] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="font-bold text-xs flex items-center gap-1.5 text-slate-200">
+                      <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Video Only (Mute)</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      Silent export for video editor overlays
+                    </div>
+                  </button>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={includeAudio}
-                  onChange={(e) => setIncludeAudio(e.target.checked)}
-                  className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
-                />
               </div>
 
               <div className="p-2.5 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300 flex items-start gap-2">
@@ -421,7 +451,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-white capitalize">
                   {progress.phase === 'rendering_audio'
-                    ? 'Synthesizing Polyphonic Audio Track...'
+                    ? 'Preparing MIDI Sound Track...'
                     : progress.phase === 'encoding_video'
                     ? 'Rendering & Muxing 60 FPS Frames...'
                     : 'Finalizing Video File...'}
