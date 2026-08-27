@@ -52,6 +52,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(duration);
   const [customFileName, setCustomFileName] = useState('');
+  const [destinationFileHandle, setDestinationFileHandle] = useState<any | null>(null);
   const [savedLocationMsg, setSavedLocationMsg] = useState<string | null>(null);
 
   // Synchronize duration when song changes or modal opens
@@ -95,9 +96,65 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     return `KeyCascade_${cleanTitle}_${resolution}_${fps}fps.${format}`;
   };
 
+  /**
+   * Allows user to pre-select their destination folder & filename via Native File System API
+   */
+  const handlePickDestination = async () => {
+    const fileName = customFileName.trim() || getDefaultFileName();
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [
+            {
+              description: format === 'mp4' ? 'MP4 Video (*.mp4)' : 'WebM Video (*.webm)',
+              accept: {
+                [format === 'mp4' ? 'video/mp4' : 'video/webm']: [`.${format}`],
+              },
+            },
+          ],
+        });
+        setDestinationFileHandle(handle);
+        setCustomFileName(handle.name);
+        setSavedLocationMsg(null);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.warn('File picker error:', err);
+        }
+      }
+    }
+  };
+
   const handleStartExport = async () => {
     setSavedLocationMsg(null);
     setDownloadBlob(null);
+
+    const fileName = customFileName.trim() || getDefaultFileName();
+    let fileHandle = destinationFileHandle;
+
+    // If destination folder not picked yet, prompt user immediately before export
+    if (!fileHandle && 'showSaveFilePicker' in window) {
+      try {
+        fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [
+            {
+              description: format === 'mp4' ? 'MP4 Video (*.mp4)' : 'WebM Video (*.webm)',
+              accept: {
+                [format === 'mp4' ? 'video/mp4' : 'video/webm']: [`.${format}`],
+              },
+            },
+          ],
+        });
+        setDestinationFileHandle(fileHandle);
+        setCustomFileName(fileHandle.name);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          // User canceled file dialog - abort starting export
+          return;
+        }
+      }
+    }
 
     const actualStart = exportFullSong ? 0 : Math.max(0, startTime);
     const actualEnd = exportFullSong ? duration : Math.min(duration, Math.max(actualStart + 1.0, endTime));
@@ -126,6 +183,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
       const url = URL.createObjectURL(blob);
       setDownloadBlob({ blob, url });
+
+      // Automatically write directly to the chosen folder/file handle
+      if (fileHandle) {
+        try {
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          setSavedLocationMsg(`Saved directly to chosen location as "${fileHandle.name}"!`);
+        } catch (saveErr) {
+          console.warn('Auto-save to chosen handle failed:', saveErr);
+        }
+      }
 
       setProgress((prev) => ({
         ...prev,
@@ -436,6 +505,69 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 </div>
               </div>
 
+              {/* Destination Folder & Save Location */}
+              <div className="p-3.5 bg-[#131726] border border-[#232840] rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <FolderOpen className="w-4 h-4 text-cyan-400" />
+                    <span>Save Location & Folder</span>
+                  </label>
+                  {destinationFileHandle ? (
+                    <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Location Selected
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-cyan-400 font-medium">
+                      Prompt before saving
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customFileName}
+                    onChange={(e) => setCustomFileName(e.target.value)}
+                    placeholder={getDefaultFileName()}
+                    className="flex-1 bg-[#0b0e17] border border-[#262c44] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                    title="Video output file name"
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePickDestination}
+                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition-all whitespace-nowrap cursor-pointer ${
+                      destinationFileHandle
+                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
+                        : 'bg-cyan-950/80 border-cyan-500 text-cyan-200 hover:bg-cyan-900/80 shadow-sm shadow-cyan-500/20'
+                    }`}
+                  >
+                    <FolderOpen className="w-3.5 h-3.5" />
+                    <span>{destinationFileHandle ? 'Change Folder...' : 'Choose Folder...'}</span>
+                  </button>
+                </div>
+
+                {destinationFileHandle ? (
+                  <div className="p-2 bg-emerald-950/40 border border-emerald-800/40 rounded-lg text-[11px] text-emerald-300 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-mono truncate">
+                      <span className="text-slate-400">Saving to:</span>
+                      <span className="font-bold text-white truncate">{destinationFileHandle.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setDestinationFileHandle(null)}
+                      className="text-[10px] text-slate-400 hover:text-white underline ml-2 whitespace-nowrap cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-400">
+                    Click <strong className="text-cyan-300">Choose Folder...</strong> to select any folder on your computer (Desktop, Videos, external drive, etc.).
+                  </p>
+                )}
+              </div>
+
               <div className="p-2.5 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300 flex items-start gap-2">
                 <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-cyan-400" />
                 <span>
@@ -589,7 +721,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 className="flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-semibold bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-md shadow-cyan-500/20 active:scale-95 transition-all"
               >
                 <Film className="w-3.5 h-3.5 text-black" />
-                <span>Start Offline Export</span>
+                <span>
+                  {destinationFileHandle ? 'Start Export to Folder' : 'Start Offline Export'}
+                </span>
               </button>
             </div>
           </div>
