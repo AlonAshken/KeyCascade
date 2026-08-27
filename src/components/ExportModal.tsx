@@ -22,7 +22,7 @@ import {
   VisualSettings,
 } from '../types/visualizer';
 import { videoExporter } from '../services/videoExporter';
-import { formatTime } from './TransportControls';
+import { formatTime } from '../utils/formatTime';
 
 interface ExportModalProps {
   isOpen: boolean;
