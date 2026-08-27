@@ -170,20 +170,22 @@ export class VisualizerRenderer {
     this.activePitches = currentActiveNotes;
 
     // 3. Render Falling Notes (White notes layer first, then Black notes on top)
-    const whiteNotes: MidiNote[] = [];
-    const blackNotes: MidiNote[] = [];
+    if (settings.showFallingNotes !== false) {
+      const whiteNotes: MidiNote[] = [];
+      const blackNotes: MidiNote[] = [];
 
-    for (const note of visibleNotes) {
-      const geom = PIANO_GEOMETRY_CACHE.get(note.pitch);
-      if (geom?.isBlack) {
-        blackNotes.push(note);
-      } else {
-        whiteNotes.push(note);
+      for (const note of visibleNotes) {
+        const geom = PIANO_GEOMETRY_CACHE.get(note.pitch);
+        if (geom?.isBlack) {
+          blackNotes.push(note);
+        } else {
+          whiteNotes.push(note);
+        }
       }
-    }
 
-    this.renderNoteBatch(ctx, whiteNotes, currentTime, strikeY, pixelsPerSecond, settings, width);
-    this.renderNoteBatch(ctx, blackNotes, currentTime, strikeY, pixelsPerSecond, settings, width);
+      this.renderNoteBatch(ctx, whiteNotes, currentTime, strikeY, pixelsPerSecond, settings, width);
+      this.renderNoteBatch(ctx, blackNotes, currentTime, strikeY, pixelsPerSecond, settings, width);
+    }
 
     // 4. Render Saber Strike Line
     if (settings.showStrikeLine) {

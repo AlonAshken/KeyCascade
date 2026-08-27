@@ -124,6 +124,20 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
         {/* --- 1. NOTE APPEARANCE TAB --- */}
         {activeTab === 'notes' && (
           <div className="space-y-4">
+            {/* Toggle Falling Waterfall Notes Cascade */}
+            <div className="flex items-center justify-between p-2.5 bg-[#121522] border border-[#1f2334] rounded-lg">
+              <div>
+                <span className="text-xs font-semibold text-cyan-300 block">Falling Waterfall Notes</span>
+                <span className="text-[10px] text-slate-400">Toggle falling notes visualizer cascade on/off</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.showFallingNotes !== false}
+                onChange={(e) => update('showFallingNotes', e.target.checked)}
+                className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+              />
+            </div>
+
             <div className="p-3 bg-[#121522] border border-[#1f2334] rounded-lg space-y-2.5">
               <label className="block text-[11px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
                 <Gem className="w-3.5 h-3.5 text-fuchsia-400" />

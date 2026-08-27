@@ -66,6 +66,7 @@ export interface VisualSettings {
   noteBorderRadius: number;      // Corner radius in px
   noteHorizontalPadding: number; // Gap between adjacent notes in px
   noteLengthScale: number;       // Visual duration multiplier (default 1.0)
+  showFallingNotes: boolean;     // Toggle falling waterfall notes cascade (default true)
   
   // Note Appearance
   noteStyle: NoteStyle;          // 'crystal' (faceted diamond), 'neon', 'glass', 'minimal'
