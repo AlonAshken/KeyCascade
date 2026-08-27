@@ -22,7 +22,7 @@ interface SheetMusicOverlayProps {
 const PITCH_CLASS_TO_DIATONIC = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
 const PITCH_CLASS_IS_SHARP = [false, true, false, true, false, false, true, false, true, false, true, false];
 
-export function pitchToDiatonic(pitch: number): { step: number; isSharp: boolean } {
+function pitchToDiatonic(pitch: number): { step: number; isSharp: boolean } {
   const octave = Math.floor(pitch / 12) - 1;
   const pitchClass = pitch % 12;
   const step = octave * 7 + PITCH_CLASS_TO_DIATONIC[pitchClass];
