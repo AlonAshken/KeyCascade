@@ -289,9 +289,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 select-none animate-in fade-in duration-150">
-      <div className="bg-[#0f111c] border border-[#23273b] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden text-slate-200">
+      <div className="bg-[#0f111c] border border-[#23273b] rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-slate-200">
         {/* Header */}
-        <div className="h-14 px-5 border-b border-[#1f2334] flex items-center justify-between bg-[#131624]">
+        <div className="h-14 px-5 border-b border-[#1f2334] flex items-center justify-between bg-[#131624] flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
               <Video className="w-4 h-4" />
@@ -316,7 +316,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {/* Phase 1: Configuration Form */}
           {!progress.isExporting && progress.phase !== 'completed' && (
             <>
@@ -402,6 +402,69 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* Destination Folder & Save Location (Choose Before Export) */}
+              <div className="p-3.5 bg-[#121626] border border-cyan-500/40 rounded-xl space-y-2.5 shadow-sm shadow-cyan-500/10">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <FolderOpen className="w-4 h-4 text-cyan-400" />
+                    <span>Save Location & Folder</span>
+                  </label>
+                  {destinationFileHandle ? (
+                    <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Ready to Save
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-amber-400 font-medium flex items-center gap-1">
+                      <span>⚠️ Choose folder below</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customFileName}
+                    onChange={(e) => setCustomFileName(e.target.value)}
+                    placeholder={getDefaultFileName()}
+                    className="flex-1 bg-[#0b0e17] border border-[#262c44] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                    title="Video output file name"
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePickDestination}
+                    className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap cursor-pointer ${
+                      destinationFileHandle
+                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black border-cyan-400 shadow-md shadow-cyan-500/25'
+                    }`}
+                  >
+                    <FolderOpen className="w-3.5 h-3.5" />
+                    <span>{destinationFileHandle ? 'Change Folder...' : 'Choose Folder...'}</span>
+                  </button>
+                </div>
+
+                {destinationFileHandle ? (
+                  <div className="p-2 bg-emerald-950/40 border border-emerald-800/50 rounded-lg text-[11px] text-emerald-300 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-mono truncate">
+                      <span className="text-slate-400">Target:</span>
+                      <span className="font-bold text-white truncate">{destinationFileHandle.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setDestinationFileHandle(null)}
+                      className="text-[10px] text-slate-400 hover:text-white underline ml-2 whitespace-nowrap cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-400">
+                    Click <strong className="text-cyan-300">Choose Folder...</strong> to select where to save your video on your computer (Desktop, Videos, external drive, etc.).
+                  </p>
+                )}
               </div>
 
               {/* Duration Scope: Entire Song vs Range */}
@@ -503,69 +566,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     </div>
                   </button>
                 </div>
-              </div>
-
-              {/* Destination Folder & Save Location */}
-              <div className="p-3.5 bg-[#131726] border border-[#232840] rounded-xl space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-white flex items-center gap-1.5">
-                    <FolderOpen className="w-4 h-4 text-cyan-400" />
-                    <span>Save Location & Folder</span>
-                  </label>
-                  {destinationFileHandle ? (
-                    <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Location Selected
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-cyan-400 font-medium">
-                      Prompt before saving
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={customFileName}
-                    onChange={(e) => setCustomFileName(e.target.value)}
-                    placeholder={getDefaultFileName()}
-                    className="flex-1 bg-[#0b0e17] border border-[#262c44] rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
-                    title="Video output file name"
-                  />
-                  <button
-                    type="button"
-                    onClick={handlePickDestination}
-                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition-all whitespace-nowrap cursor-pointer ${
-                      destinationFileHandle
-                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
-                        : 'bg-cyan-950/80 border-cyan-500 text-cyan-200 hover:bg-cyan-900/80 shadow-sm shadow-cyan-500/20'
-                    }`}
-                  >
-                    <FolderOpen className="w-3.5 h-3.5" />
-                    <span>{destinationFileHandle ? 'Change Folder...' : 'Choose Folder...'}</span>
-                  </button>
-                </div>
-
-                {destinationFileHandle ? (
-                  <div className="p-2 bg-emerald-950/40 border border-emerald-800/40 rounded-lg text-[11px] text-emerald-300 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 font-mono truncate">
-                      <span className="text-slate-400">Saving to:</span>
-                      <span className="font-bold text-white truncate">{destinationFileHandle.name}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setDestinationFileHandle(null)}
-                      className="text-[10px] text-slate-400 hover:text-white underline ml-2 whitespace-nowrap cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-[10px] text-slate-400">
-                    Click <strong className="text-cyan-300">Choose Folder...</strong> to select any folder on your computer (Desktop, Videos, external drive, etc.).
-                  </p>
-                )}
               </div>
 
               <div className="p-2.5 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300 flex items-start gap-2">
