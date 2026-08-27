@@ -164,16 +164,16 @@ export const TransportControls: React.FC<TransportControlsProps> = ({
           <div className="flex items-center gap-1.5 bg-[#141724] border border-[#232738] rounded-md px-2 py-1">
             <FastForward className="w-3 h-3 text-fuchsia-400" />
             <select
-              value={playbackSpeed}
+              value={playbackSpeed.toString()}
               onChange={(e) => onChangeSpeed(parseFloat(e.target.value))}
               className="bg-transparent text-[11px] font-mono text-slate-200 focus:outline-none cursor-pointer"
             >
               <option value="0.5" className="bg-[#141724]">0.5x</option>
               <option value="0.75" className="bg-[#141724]">0.75x</option>
-              <option value="1.0" className="bg-[#141724]">1.0x</option>
+              <option value="1" className="bg-[#141724]">1.0x</option>
               <option value="1.25" className="bg-[#141724]">1.25x</option>
               <option value="1.5" className="bg-[#141724]">1.5x</option>
-              <option value="2.0" className="bg-[#141724]">2.0x</option>
+              <option value="2" className="bg-[#141724]">2.0x</option>
             </select>
           </div>
 
