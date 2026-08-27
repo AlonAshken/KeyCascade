@@ -99,9 +99,6 @@ export interface VisualSettings {
   keyboardHeightRatio: number;   // Ratio of canvas height (0.12 to 0.28)
   showKeyLabels: boolean;
   activeKeyGlow: number;
-
-  // Sheet Music (Grand Staff)
-  showSheetMusic: boolean;
   
   // Particles (Collision sparks)
   showParticles: boolean;

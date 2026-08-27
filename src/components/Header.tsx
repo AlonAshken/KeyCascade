@@ -4,7 +4,7 @@
  */
 
 import React, { useRef } from 'react';
-import { Upload, Music, Music2, Video, Sliders, Disc, Sparkles } from 'lucide-react';
+import { Upload, Music, Video, Sliders, Disc, Sparkles } from 'lucide-react';
 import { DEMO_SONGS } from '../services/demoSongs';
 import { THEME_PRESETS } from '../services/themePresets';
 import { ThemePreset } from '../types/visualizer';
@@ -18,8 +18,6 @@ interface HeaderProps {
   onOpenExportModal: () => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
-  showSheetMusic: boolean;
-  onToggleSheetMusic: () => void;
   showFallingNotes: boolean;
   onToggleFallingNotes: () => void;
   isPlaying: boolean;
@@ -34,8 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenExportModal,
   sidebarOpen,
   onToggleSidebar,
-  showSheetMusic,
-  onToggleSheetMusic,
   showFallingNotes,
   onToggleFallingNotes,
   isPlaying,
@@ -160,20 +156,6 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
           <span className="hidden sm:inline">Falling Notes</span>
-        </button>
-
-        {/* Sheet Music Toggle Button */}
-        <button
-          onClick={onToggleSheetMusic}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-            showSheetMusic
-              ? 'bg-fuchsia-950/70 border-fuchsia-500 text-fuchsia-200 shadow-sm shadow-fuchsia-500/30'
-              : 'bg-[#1a1e2e] border-[#2d334d] text-slate-300 hover:text-white'
-          }`}
-          title="Toggle Real-Time Running Sheet Music"
-        >
-          <Music2 className="w-3.5 h-3.5 text-fuchsia-400" />
-          <span className="hidden sm:inline">Sheet Music</span>
         </button>
 
         {/* Export Video Button */}

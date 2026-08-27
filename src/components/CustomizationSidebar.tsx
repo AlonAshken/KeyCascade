@@ -561,19 +561,6 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between p-2.5 bg-[#121522] border border-[#1f2334] rounded-lg">
               <div>
-                <span className="text-xs font-semibold text-fuchsia-300 block">Running Sheet Music (Grand Staff)</span>
-                <span className="text-[10px] text-slate-400">Treble RH & Bass LH with active note glow</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.showSheetMusic}
-                onChange={(e) => update('showSheetMusic', e.target.checked)}
-                className="w-4 h-4 accent-fuchsia-500 rounded cursor-pointer"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-[#121522] border border-[#1f2334] rounded-lg">
-              <div>
                 <span className="text-xs font-semibold text-slate-200 block">88-Key Virtual Keyboard</span>
                 <span className="text-[10px] text-slate-400">Accurate 52 white + 36 black keys</span>
               </div>

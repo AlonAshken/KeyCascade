@@ -9,7 +9,6 @@ import { CanvasViewport } from './components/CanvasViewport';
 import { TransportControls } from './components/TransportControls';
 import { CustomizationSidebar } from './components/CustomizationSidebar';
 import { ExportModal } from './components/ExportModal';
-import { SheetMusicOverlay } from './components/SheetMusicOverlay';
 import { ParsedMidi, VisualSettings, ThemePreset } from './types/visualizer';
 import { DEMO_SONGS } from './services/demoSongs';
 import { THEME_PRESETS } from './services/themePresets';
@@ -56,9 +55,6 @@ const DEFAULT_SETTINGS: VisualSettings = {
   keyboardHeightRatio: 0.18,
   showKeyLabels: true,
   activeKeyGlow: 1.5,
-
-  // Sheet Music (Grand Staff)
-  showSheetMusic: false,
 
   // Particles (Collision sparks)
   showParticles: true,
@@ -289,10 +285,6 @@ export function App() {
         }}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-        showSheetMusic={settings.showSheetMusic}
-        onToggleSheetMusic={() =>
-          setSettings((prev) => ({ ...prev, showSheetMusic: !prev.showSheetMusic }))
-        }
         showFallingNotes={settings.showFallingNotes !== false}
         onToggleFallingNotes={() =>
           setSettings((prev) => ({
@@ -303,7 +295,7 @@ export function App() {
         isPlaying={isPlaying}
       />
 
-      {/* Main Viewport + Running Sheet Music Overlay + Customization Sidebar */}
+      {/* Main Viewport + Customization Sidebar */}
       <div className="flex-1 flex overflow-hidden relative">
         <CanvasViewport
           renderer={renderer}
@@ -312,15 +304,6 @@ export function App() {
           currentTime={currentTime}
           isPlaying={isPlaying}
           onDropFile={handleFileUpload}
-        />
-
-        {/* Real-Time Running Sheet Music Overlay (Grand Staff) */}
-        <SheetMusicOverlay
-          notes={coloredNotes}
-          currentTime={currentTime}
-          settings={settings}
-          isOpen={settings.showSheetMusic}
-          onClose={() => setSettings((prev) => ({ ...prev, showSheetMusic: false }))}
         />
 
         <CustomizationSidebar
