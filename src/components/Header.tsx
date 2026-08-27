@@ -4,7 +4,7 @@
  */
 
 import React, { useRef } from 'react';
-import { Upload, Music, Video, Sliders, Disc } from 'lucide-react';
+import { Upload, Music, Video, Sliders, Disc, Sparkles } from 'lucide-react';
 import { DEMO_SONGS } from '../services/demoSongs';
 import { THEME_PRESETS } from '../services/themePresets';
 import { ThemePreset } from '../types/visualizer';
@@ -18,6 +18,8 @@ interface HeaderProps {
   onOpenExportModal: () => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
+  showFallingNotes: boolean;
+  onToggleFallingNotes: () => void;
   isPlaying: boolean;
 }
 
@@ -30,6 +32,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenExportModal,
   sidebarOpen,
   onToggleSidebar,
+  showFallingNotes,
+  onToggleFallingNotes,
   isPlaying,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -138,8 +142,22 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right Actions: Export Video & Settings Toggle */}
+      {/* Right Actions: Sheet Music, Export Video & Settings Toggle */}
       <div className="flex items-center gap-2">
+        {/* Falling Notes Waterfall Toggle */}
+        <button
+          onClick={onToggleFallingNotes}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
+            showFallingNotes
+              ? 'bg-cyan-950/70 border-cyan-500 text-cyan-200 shadow-sm shadow-cyan-500/30'
+              : 'bg-[#1a1e2e] border-[#2d334d] text-slate-400 hover:text-white'
+          }`}
+          title="Toggle Falling Notes Waterfall Visualizer"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="hidden sm:inline">Falling Notes</span>
+        </button>
+
         {/* Export Video Button */}
         <button
           onClick={onOpenExportModal}

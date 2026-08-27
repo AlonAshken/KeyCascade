@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS: VisualSettings = {
   noteBorderRadius: 6,
   noteHorizontalPadding: 1.5,
   noteLengthScale: 1.0,
+  showFallingNotes: true,
 
   // Note Appearance: Crystal Faceted Diamond
   noteStyle: 'crystal',
@@ -286,6 +287,13 @@ export function App() {
         }}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+        showFallingNotes={settings.showFallingNotes !== false}
+        onToggleFallingNotes={() =>
+          setSettings((prev) => ({
+            ...prev,
+            showFallingNotes: prev.showFallingNotes === false ? true : false,
+          }))
+        }
         isPlaying={isPlaying}
       />
 
