@@ -56,8 +56,6 @@ const DEFAULT_SETTINGS: VisualSettings = {
   showKeyLabels: true,
   activeKeyGlow: 1.5,
 
-  // Sheet Music (Grand Staff)
-  showSheetMusic: false,
   // Particles (Collision sparks)
   showParticles: true,
   particleDensity: 18,
