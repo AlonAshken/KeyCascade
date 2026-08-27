@@ -198,38 +198,76 @@ export class AudioSynthEngine {
     duration: number,
     sampleRate: number = 44100
   ): Promise<AudioBuffer> {
-    const totalLength = Math.ceil((duration + 1.5) * sampleRate);
+    const totalLength = Math.ceil((duration + 1.0) * sampleRate);
     const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
 
     const comp = offlineCtx.createDynamicsCompressor();
-    comp.threshold.setValueAtTime(-18, 0);
-    comp.knee.setValueAtTime(12, 0);
-    comp.ratio.setValueAtTime(4, 0);
+    comp.threshold.setValueAtTime(-16, 0);
+    comp.knee.setValueAtTime(8, 0);
+    comp.ratio.setValueAtTime(3.5, 0);
     comp.attack.setValueAtTime(0.003, 0);
-    comp.release.setValueAtTime(0.25, 0);
+    comp.release.setValueAtTime(0.2, 0);
 
     const master = offlineCtx.createGain();
-    master.gain.setValueAtTime(0.85, 0);
-
-    const conv = offlineCtx.createConvolver();
-    conv.buffer = this.createReverbBuffer(offlineCtx, 1.8, 2.0);
-
-    const verbGain = offlineCtx.createGain();
-    verbGain.gain.setValueAtTime(0.2, 0);
+    master.gain.setValueAtTime(0.9, 0);
 
     comp.connect(master);
     master.connect(offlineCtx.destination);
 
-    comp.connect(conv);
-    conv.connect(verbGain);
-    verbGain.connect(offlineCtx.destination);
-
+    // Schedule lightweight dual-harmonic piano voices (instant rendering)
     for (const note of notes) {
       if (note.time >= duration) continue;
-      this.synthesizeVoice(offlineCtx, comp, note.pitch, note.velocity, note.time, note.duration);
+      this.synthesizeOfflineVoice(offlineCtx, comp, note.pitch, note.velocity, note.time, note.duration);
     }
 
-    return await offlineCtx.startRendering();
+    // Safety timeout: guaranteed to never hang or block export
+    const renderPromise = offlineCtx.startRendering();
+    const timeoutPromise = new Promise<AudioBuffer>((_, reject) =>
+      setTimeout(() => reject(new Error('Offline audio render timeout')), 3500)
+    );
+
+    return await Promise.race([renderPromise, timeoutPromise]);
+  }
+
+  private synthesizeOfflineVoice(
+    ctx: BaseAudioContext,
+    destination: AudioNode,
+    pitch: number,
+    velocity: number,
+    startTime: number,
+    duration: number
+  ) {
+    const freq = midiToFreq(pitch);
+
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(freq, startTime);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 2, startTime);
+
+    const envGain = ctx.createGain();
+    const peakGain = 0.5 * Math.pow(velocity, 1.2);
+
+    envGain.gain.setValueAtTime(0.0001, startTime);
+    envGain.gain.exponentialRampToValueAtTime(Math.max(0.001, peakGain), startTime + 0.005);
+
+    const decayTime = Math.min(duration * 0.75, 2.0);
+    const sustain = Math.max(0.0001, peakGain * 0.2);
+    envGain.gain.exponentialRampToValueAtTime(sustain, startTime + 0.005 + decayTime);
+
+    const stopTime = startTime + duration + 0.05;
+    envGain.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+
+    osc1.connect(envGain);
+    osc2.connect(envGain);
+    envGain.connect(destination);
+
+    osc1.start(startTime);
+    osc2.start(startTime);
+    osc1.stop(stopTime);
+    osc2.stop(stopTime);
   }
 }
 
