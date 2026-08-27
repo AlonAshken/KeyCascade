@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS: VisualSettings = {
   strikeLineGlow: 22,
   saberColor: '#d946ef',
   saberGlow: '#a855f7',
+  anamorphicFlare: true,
 
   // Keyboard
   showKeyboard: true,

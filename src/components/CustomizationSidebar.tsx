@@ -131,10 +131,11 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'crystal', label: '💎 Crystal Facet', desc: 'Faceted Diamond' },
-                  { id: 'neon', label: '⚡ Neon Capsule', desc: 'Rousseau Classic' },
-                  { id: 'glass', label: '✨ Frosted Glass', desc: 'Prismatic Luster' },
-                  { id: 'minimal', label: '⬛ Clean Flat', desc: 'Modern Studio' },
+                  { id: 'crystal', label: '💎 Crystal Facet', desc: 'Prismatic Diamond Cuts' },
+                  { id: 'neon', label: '⚡ Liquid Plasma', desc: 'Pulsing Glass Tube' },
+                  { id: 'glass', label: '✨ VisionOS Glass', desc: 'Frosted Rainbow Sheen' },
+                  { id: 'obsidian', label: '🔥 Molten Obsidian', desc: 'Magma Fissure Core' },
+                  { id: 'minimal', label: '⬛ Clean Flat', desc: 'Modern Studio Bauhaus' },
                 ].map((st) => (
                   <button
                     key={st.id}
@@ -521,6 +522,20 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
                   value={settings.strikeLineHeight}
                   onChange={(e) => update('strikeLineHeight', parseInt(e.target.value))}
                   className="w-full"
+                />
+              </div>
+
+              {/* Anamorphic Cinema Lens Flares */}
+              <div className="flex items-center justify-between pt-2 border-t border-[#1f2334]">
+                <div>
+                  <span className="text-xs font-semibold text-cyan-300 block">Anamorphic Lens Flares</span>
+                  <span className="text-[10px] text-slate-400">Cinematic horizontal light streaks on key strikes</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.anamorphicFlare !== false}
+                  onChange={(e) => update('anamorphicFlare', e.target.checked)}
+                  className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
                 />
               </div>
             </div>

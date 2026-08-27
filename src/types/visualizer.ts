@@ -41,7 +41,7 @@ export interface ParsedMidi {
 
 export type BgMode = 'black' | 'green' | 'transparent' | 'gradient';
 export type ColorMode = 'hand' | 'track' | 'velocity' | 'rainbow';
-export type NoteStyle = 'crystal' | 'neon' | 'glass' | 'minimal';
+export type NoteStyle = 'crystal' | 'neon' | 'glass' | 'obsidian' | 'minimal';
 export type DissolveMode = 'stardust' | 'sparks' | 'smoke' | 'off';
 
 export interface ThemePreset {
@@ -85,12 +85,13 @@ export interface VisualSettings {
   bloomRadius: number;           // Glow blur radius
   enableBloom: boolean;          // High quality multi-pass glow
   
-  // Strike Line / Saber
+  // Strike Line / Saber & Impact Flares
   showStrikeLine: boolean;
   strikeLineHeight: number;
   strikeLineGlow: number;
   saberColor: string;
   saberGlow: string;
+  anamorphicFlare: boolean;      // Cinematic anamorphic lens flare horizontal streaks
   
   // Keyboard
   showKeyboard: boolean;
