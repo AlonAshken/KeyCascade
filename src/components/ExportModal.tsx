@@ -619,71 +619,61 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
           {/* Phase 3: Completed Successfully */}
           {!progress.isExporting && progress.phase === 'completed' && downloadBlob && (
-            <div className="py-5 flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="w-14 h-14 rounded-full bg-emerald-950/80 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="py-6 flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-950/90 border border-emerald-500/60 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/25">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
 
-              <div>
-                <h3 className="text-base font-bold text-white">Full Video Render Complete!</h3>
-                <p className="text-xs text-slate-400 font-mono mt-1">
-                  {resDims.width}×{resDims.height} @ {fps} FPS • {exportDuration}s •{' '}
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-white">Video Successfully Saved!</h3>
+                <p className="text-xs text-slate-400 font-mono">
+                  {resDims.width}×{resDims.height} @ {fps} FPS • {exportDuration}s duration •{' '}
                   {(downloadBlob.blob.size / (1024 * 1024)).toFixed(1)} MB
                 </p>
               </div>
 
-              {/* Filename customization */}
-              <div className="w-full max-w-sm text-left px-2">
-                <label className="text-[10px] uppercase font-mono text-slate-400 block mb-1">
-                  Video File Name
-                </label>
-                <input
-                  type="text"
-                  value={customFileName || getDefaultFileName()}
-                  onChange={(e) => setCustomFileName(e.target.value)}
-                  className="w-full bg-[#161a29] border border-[#2d334d] focus:border-cyan-500 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none"
-                />
+              {/* Location Confirmation Card */}
+              <div className="w-full max-w-sm p-3.5 bg-emerald-950/40 border border-emerald-800/60 rounded-xl text-left space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-emerald-300 font-bold">
+                  <FolderOpen className="w-4 h-4 text-emerald-400" />
+                  <span>Saved File Location</span>
+                </div>
+                <div className="text-xs text-white font-mono truncate">
+                  {destinationFileHandle ? destinationFileHandle.name : (customFileName || getDefaultFileName())}
+                </div>
+                <div className="text-[10px] text-emerald-400/80">
+                  ✓ Successfully written to your chosen folder on your computer.
+                </div>
               </div>
 
-              {/* Save Location Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm pt-1">
+              {/* Actions: Done & Close / Export Another */}
+              <div className="flex items-center gap-2.5 w-full max-w-sm pt-2">
                 <button
-                  onClick={handleSaveAs}
-                  className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-lg shadow-cyan-500/30 transition-all active:scale-95 cursor-pointer"
-                  title="Choose exact folder location on your computer to save video (Desktop, Videos, external drive, etc.)"
+                  onClick={onClose}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-lg shadow-cyan-500/30 transition-all active:scale-95 cursor-pointer"
                 >
-                  <FolderOpen className="w-4 h-4 text-black" />
-                  <span>Choose Save Location...</span>
+                  Done & Close
                 </button>
 
                 <button
-                  onClick={handleQuickDownload}
-                  className="flex-1 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-[#1a1e2d] hover:bg-[#252b40] text-slate-200 border border-[#2d334d] transition-all cursor-pointer"
-                  title="Save directly to your browser's default Downloads folder"
+                  onClick={() => {
+                    setSavedLocationMsg(null);
+                    setDestinationFileHandle(null);
+                    setProgress({ ...progress, phase: 'preparing' });
+                  }}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-medium bg-[#1a1e2d] hover:bg-[#252b40] text-slate-200 border border-[#2d334d] transition-all cursor-pointer"
                 >
-                  <Download className="w-4 h-4 text-cyan-400" />
-                  <span>Save to Downloads</span>
+                  Export Another
                 </button>
               </div>
 
-              {savedLocationMsg ? (
-                <p className="text-[11px] text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-md font-mono">
-                  ✓ {savedLocationMsg}
-                </p>
-              ) : (
-                <p className="text-[10px] text-slate-400 max-w-xs">
-                  💡 Click <strong>Choose Save Location...</strong> to pick any folder on your computer, or <strong>Save to Downloads</strong>.
-                </p>
-              )}
-
+              {/* Optional duplicate copy link */}
               <button
-                onClick={() => {
-                  setSavedLocationMsg(null);
-                  setProgress({ ...progress, phase: 'preparing' });
-                }}
-                className="text-xs text-slate-400 hover:text-white underline pt-1"
+                onClick={handleQuickDownload}
+                className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1 pt-1"
               >
-                Export Another Video
+                <Download className="w-3 h-3" />
+                <span>Save a duplicate copy to Downloads</span>
               </button>
             </div>
           )}
