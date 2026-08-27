@@ -162,6 +162,7 @@ export const TransportControls: React.FC<TransportControlsProps> = ({
               onChange={(e) => onChangeSpeed(parseFloat(e.target.value))}
               className="bg-transparent text-[11px] font-mono text-slate-200 focus:outline-none cursor-pointer"
             >
+              <option value="0.25" className="bg-[#141724]">0.25x</option>
               <option value="0.5" className="bg-[#141724]">0.5x</option>
               <option value="0.75" className="bg-[#141724]">0.75x</option>
               <option value="1" className="bg-[#141724]">1.0x</option>
