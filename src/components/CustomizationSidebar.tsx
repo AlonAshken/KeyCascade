@@ -11,7 +11,6 @@ import {
   Zap,
   RotateCcw,
   Layers,
-  Music,
   Gem,
   Wind,
 } from 'lucide-react';
@@ -31,7 +30,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
   onResetSettings,
   isOpen,
 }) => {
-  const [activeTab, setActiveTab] = useState<'theme' | 'notes' | 'fx' | 'dissolve' | 'keyboard'>('notes');
+  const [activeTab, setActiveTab] = useState<'notes' | 'dissolve' | 'theme' | 'fx' | 'keyboard'>('notes');
 
   if (!isOpen) return null;
 
@@ -125,7 +124,6 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
         {/* --- 1. NOTE APPEARANCE TAB --- */}
         {activeTab === 'notes' && (
           <div className="space-y-4">
-            {/* Note Style Selector (Grim Cat Facets vs Rousseau) */}
             <div className="p-3 bg-[#121522] border border-[#1f2334] rounded-lg space-y-2.5">
               <label className="block text-[11px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
                 <Gem className="w-3.5 h-3.5 text-fuchsia-400" />
@@ -133,7 +131,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'crystal', label: '💎 Crystal Facet', desc: 'Grim Cat Diamond' },
+                  { id: 'crystal', label: '💎 Crystal Facet', desc: 'Faceted Diamond' },
                   { id: 'neon', label: '⚡ Neon Capsule', desc: 'Rousseau Classic' },
                   { id: 'glass', label: '✨ Frosted Glass', desc: 'Prismatic Luster' },
                   { id: 'minimal', label: '⬛ Clean Flat', desc: 'Modern Studio' },
@@ -154,7 +152,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               </div>
             </div>
 
-            {/* Fall Speed (Travel Time) */}
+            {/* Fall Speed */}
             <div>
               <div className="flex justify-between text-[11px] text-slate-300 mb-1">
                 <span>Fall Speed (Note Travel Time)</span>
@@ -207,10 +205,9 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
           </div>
         )}
 
-        {/* --- 2. DISSOLVING DUST & STARDUST TAB (GRIM CAT SIGNATURE) --- */}
+        {/* --- 2. DISSOLVING DUST & PARTICLES TAB --- */}
         {activeTab === 'dissolve' && (
           <div className="space-y-4">
-            {/* Dissolve Mode */}
             <div className="p-3 bg-[#121522] border border-[#1f2334] rounded-lg space-y-2.5">
               <label className="block text-[11px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
                 <Wind className="w-3.5 h-3.5 text-fuchsia-400" />
@@ -218,9 +215,9 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'stardust', label: '✨ Ethereal Stardust', desc: 'Grim Cat Vortex Dust' },
-                  { id: 'sparks', label: '💥 Explosive Sparks', desc: 'Rousseau Bursts' },
-                  { id: 'smoke', label: '🌌 Cosmic Smoke', desc: 'Soft Floating Mist' },
+                  { id: 'stardust', label: '✨ Ethereal Stardust', desc: 'Ascending Vortex Dust' },
+                  { id: 'sparks', label: '💥 Explosive Sparks', desc: 'High-Velocity Fountains' },
+                  { id: 'smoke', label: '🌌 Cosmic Smoke', desc: 'Soft Billowing Mist' },
                   { id: 'off', label: '🚫 Clean Cut', desc: 'No Dissolve' },
                 ].map((mode) => (
                   <button
@@ -239,16 +236,16 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               </div>
             </div>
 
-            {/* Stardust Dust Density */}
+            {/* Stardust Density */}
             <div>
               <div className="flex justify-between text-[11px] text-slate-300 mb-1">
-                <span>Stardust Dust Density</span>
+                <span>Dust & Spark Density</span>
                 <span className="font-mono text-fuchsia-300">{settings.stardustIntensity.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
                 min="0.5"
-                max="3.0"
+                max="2.5"
                 step="0.1"
                 value={settings.stardustIntensity}
                 onChange={(e) => update('stardustIntensity', parseFloat(e.target.value))}
@@ -256,7 +253,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               />
             </div>
 
-            {/* Vortex Turbulence / Swirl */}
+            {/* Vortex Swirl */}
             <div>
               <div className="flex justify-between text-[11px] text-slate-300 mb-1">
                 <span>Vortex Swirl & Winding Motion</span>
@@ -265,7 +262,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               <input
                 type="range"
                 min="0.4"
-                max="2.5"
+                max="2.2"
                 step="0.1"
                 value={settings.stardustSwirl}
                 onChange={(e) => update('stardustSwirl', parseFloat(e.target.value))}
@@ -273,16 +270,16 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               />
             </div>
 
-            {/* Stardust Float Duration */}
+            {/* Lifetime */}
             <div>
               <div className="flex justify-between text-[11px] text-slate-300 mb-1">
-                <span>Dust Rise & Dissolve Time</span>
+                <span>Particle Lifetime</span>
                 <span className="font-mono text-fuchsia-300">{settings.stardustLifetime.toFixed(1)}s</span>
               </div>
               <input
                 type="range"
-                min="0.8"
-                max="3.0"
+                min="0.6"
+                max="2.5"
                 step="0.1"
                 value={settings.stardustLifetime}
                 onChange={(e) => update('stardustLifetime', parseFloat(e.target.value))}
@@ -290,7 +287,7 @@ export const CustomizationSidebar: React.FC<CustomizationSidebarProps> = ({
               />
             </div>
 
-            {/* Ambient Floating Bokeh Motes */}
+            {/* Ambient Background Dust Motes */}
             <div className="flex items-center justify-between p-2.5 bg-[#121522] border border-[#1f2334] rounded-lg">
               <div>
                 <span className="text-xs font-semibold text-slate-200 block">Ambient Background Dust Motes</span>

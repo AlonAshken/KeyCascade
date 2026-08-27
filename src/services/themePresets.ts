@@ -7,9 +7,9 @@ import { ThemePreset } from '../types/visualizer';
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
-    id: 'grim-cat-amethyst',
-    name: 'Grim Cat Amethyst & Dust',
-    description: 'Faceted crystal diamond notes with swirling stardust dissolve & magenta aura (As seen on YouTube)',
+    id: 'amethyst-stardust',
+    name: 'Amethyst & Magenta Stardust',
+    description: 'Faceted crystal diamond notes with swirling stardust dissolve & magenta aura',
     noteStyle: 'crystal',
     dissolveMode: 'stardust',
     leftHandColor: '#9333ea',
@@ -23,7 +23,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'cyberpunk-neon',
     name: 'Cyberpunk Neon',
-    description: 'Electric Cyan Bass & Radiant Magenta Treble with high-intensity bloom (Classic Rousseau)',
+    description: 'Electric Cyan Bass & Radiant Magenta Treble with high-intensity bloom',
     noteStyle: 'neon',
     dissolveMode: 'sparks',
     leftHandColor: '#00f2fe',
@@ -35,9 +35,23 @@ export const THEME_PRESETS: ThemePreset[] = [
     bgMode: 'black',
   },
   {
+    id: 'cosmic-nebula',
+    name: 'Cosmic Nebula Smoke',
+    description: 'Deep violet tones with ethereal billowing cosmic nebula smoke',
+    noteStyle: 'glass',
+    dissolveMode: 'smoke',
+    leftHandColor: '#7c3aed',
+    leftHandSecondary: '#a78bfa',
+    rightHandColor: '#ec4899',
+    rightHandSecondary: '#f472b6',
+    saberColor: '#c084fc',
+    saberGlow: '#a855f7',
+    bgMode: 'black',
+  },
+  {
     id: 'rousseau-fire',
-    name: 'Rousseau Fire & Gold',
-    description: 'Molten Gold & Solar Flare Orange with burning strike particles',
+    name: 'Solar Flare & Sparks',
+    description: 'Molten Gold & Solar Flare Orange with explosive spark fountains',
     noteStyle: 'crystal',
     dissolveMode: 'sparks',
     leftHandColor: '#ff9900',

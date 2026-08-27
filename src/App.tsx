@@ -23,18 +23,18 @@ const DEFAULT_SETTINGS: VisualSettings = {
   noteHorizontalPadding: 1.5,
   noteLengthScale: 1.0,
 
-  // Note Appearance (Grim Cat Faceted Diamond)
+  // Note Appearance: Crystal Faceted Diamond
   noteStyle: 'crystal',
   noteFacetDensity: 3,
   noteShineIntensity: 1.2,
 
-  // Grim Cat Dissolving Stardust Effect
+  // Ethereal Stardust Vortex Effect
   dissolveMode: 'stardust',
-  stardustIntensity: 1.4,
-  stardustSwirl: 1.2,
-  stardustLifetime: 1.6,
+  stardustIntensity: 1.2,
+  stardustSwirl: 1.1,
+  stardustLifetime: 1.5,
   ambientBokeh: true,
-  ambientBokehCount: 35,
+  ambientBokehCount: 30,
 
   // Lighting & Bloom
   glowIntensity: 1.3,
@@ -54,7 +54,7 @@ const DEFAULT_SETTINGS: VisualSettings = {
   showKeyLabels: true,
   activeKeyGlow: 1.5,
 
-  // Particles
+  // Particles (Collision sparks)
   showParticles: true,
   particleDensity: 18,
   particleSpeed: 1.4,
@@ -63,7 +63,7 @@ const DEFAULT_SETTINGS: VisualSettings = {
   particleSize: 3,
   particleBlendMode: 'lighter',
 
-  // Colors & Theme (Grim Cat Amethyst & Magenta)
+  // Colors & Theme: Amethyst & Magenta
   colorMode: 'hand',
   leftHandColor: '#9333ea',
   leftHandSecondary: '#c084fc',
@@ -79,7 +79,7 @@ export function App() {
 
   // Visual settings & preset state
   const [settings, setSettings] = useState<VisualSettings>(DEFAULT_SETTINGS);
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('grim-cat-amethyst');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('amethyst-stardust');
 
   // MIDI data state
   const [currentSong, setCurrentSong] = useState<ParsedMidi>(() => DEMO_SONGS[0].generate());

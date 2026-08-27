@@ -67,12 +67,12 @@ export interface VisualSettings {
   noteHorizontalPadding: number; // Gap between adjacent notes in px
   noteLengthScale: number;       // Visual duration multiplier (default 1.0)
   
-  // Note Appearance (Grim Cat & Rousseau styles)
-  noteStyle: NoteStyle;          // 'crystal' (Grim Cat faceted diamond), 'neon', 'glass', 'minimal'
+  // Note Appearance
+  noteStyle: NoteStyle;          // 'crystal' (faceted diamond), 'neon', 'glass', 'minimal'
   noteFacetDensity: number;      // Density of crystal facets (1 to 5)
   noteShineIntensity: number;    // Specular glint intensity (0 to 2)
 
-  // Dissolving Dust & Particle System (Grim Cat signature)
+  // Dissolving Dust & Particle System
   dissolveMode: DissolveMode;    // 'stardust' (winding ethereal dust), 'sparks', 'smoke', 'off'
   stardustIntensity: number;     // Particle spawn rate (0.5 to 3.0)
   stardustSwirl: number;         // Sinusoidal turbulence / vortex wind (0.5 to 3.0)

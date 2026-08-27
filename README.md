@@ -1,6 +1,6 @@
 # KeyCascade — Pro 4K 60 FPS Piano MIDI Visualizer & Video Generator
 
-**KeyCascade** is a high-performance web-based Piano MIDI Visualizer and 60 FPS Video Studio developed by **Alon Ashkenazi**. Inspired by *Grim Cat Piano*, *Rousseau*, and *SeeMusic*, it transforms standard MIDI files into cinematic visual spectacles with crystal facet diamond notes, winding stardust vortex dissolves, glowing strike lines, and offline 4K 60 FPS rendering.
+**KeyCascade** is a high-performance web-based Piano MIDI Visualizer and 60 FPS Video Studio developed by **Alon Ashkenazi**. It transforms standard MIDI files into cinematic visual spectacles with crystal facet diamond notes, winding stardust vortex dissolves, glowing strike lines, and offline 4K 60 FPS rendering.
 
 GitHub Repository: [https://github.com/AlonAshken/KeyCascade](https://github.com/AlonAshken/KeyCascade)
 
@@ -8,14 +8,15 @@ GitHub Repository: [https://github.com/AlonAshken/KeyCascade](https://github.com
 
 ## ✨ Features & Capabilities
 
-### 💎 Note Appearance Styles (Grim Cat Signature)
-- **Crystal Diamond Facets (Grim Cat Style)**: Notes rendered with internal geometric facets, specular glints, and white-hot refraction cores that sparkle as they cascade down.
-- **Neon Capsule (Rousseau Style)**: Smooth rounded pills with dual-hand color gradients and 3D highlight borders.
+### 💎 Note Appearance Styles
+- **Crystal Diamond Facets**: Notes rendered with internal geometric facets, specular glints, and white-hot refraction cores that sparkle as they cascade down.
+- **Neon Capsule (Rousseau Style)**: Smooth rounded pills with dual-hand vertical gradients and 3D highlight borders.
 - **Frosted Glass**: Translucent milky glass with high-intensity neon borders.
 - **Clean Flat Modern**: Crisp, minimalist solid tone bars.
 
 ### 🌌 Dissolving Stardust & Particle Physics
-- **Ethereal Stardust Vortex (Grim Cat Signature)**: As notes strike the keyboard, they dissolve into ascending ribbons of sparkling stardust motes with sinuous vortex winding motion and twinkling luminance.
+- **Ethereal Stardust Vortex**: As notes strike the keyboard, they dissolve into ascending ribbons of sparkling stardust motes with sinuous vortex winding motion and twinkling luminance.
+- **Cosmic Nebula Smoke**: Billowing plumes of expanding luminous mist rising from the played keys.
 - **Collision Spark Bursts**: Physics-based explosive spark bursts scaling with MIDI velocity, air drag, and gravity.
 - **Ambient Floating Bokeh**: Cinematic out-of-focus glowing dust spheres gently floating in the dark atmosphere.
 - **Strike Line / Saber Bar**: Glowing neon laser line with dynamic radial flares above active keys.
@@ -58,12 +59,12 @@ KeyCascade/
 │   ├── services/
 │   │   ├── midiParser.ts          # @tonejs/midi parser, track extraction, hand separation
 │   │   ├── pianoGeometry.ts       # 88-key acoustic layout math and note coordinates
-│   │   ├── particleSystem.ts      # Grim Cat stardust vortex and spark physics
+│   │   ├── particleSystem.ts      # Stardust vortex, smoke, and spark physics
 │   │   ├── visualizerRenderer.ts  # 60 FPS Canvas render loop, crystal facets, saber line
 │   │   ├── audioSynth.ts          # Web Audio synth and offline audio renderer
 │   │   ├── videoExporter.ts       # Deterministic 60 FPS 1080p/4K offline video exporter
 │   │   ├── demoSongs.ts           # Classical and virtuoso demo pieces
-│   │   └── themePresets.ts        # Grim Cat Amethyst, Cyberpunk Neon, Rousseau Fire, etc.
+│   │   └── themePresets.ts        # Amethyst Stardust, Cyberpunk Neon, Rousseau Fire, etc.
 │   ├── components/
 │   │   ├── Header.tsx             # Brand header, file upload, demo songs, export trigger
 │   │   ├── CanvasViewport.tsx     # High-DPI canvas preview with FPS counter

@@ -2,8 +2,9 @@
  * KeyCascade — Visualizer & 60 FPS Canvas Rendering Engine
  * Developed by Alon Ashkenazi
  *
- * Supports Grim Cat style crystal facet notes, ethereal stardust dissolve,
- * Rousseau neon capsules, strike saber flares, and ambient bokeh atmosphere.
+ * High-performance 60 FPS render loop with crystal facet diamond notes,
+ * ethereal stardust vortex dissolve, cosmic nebula smoke, explosive sparks,
+ * strike saber flares, and ambient bokeh atmosphere.
  */
 
 import { MidiNote, VisualSettings } from '../types/visualizer';
@@ -79,48 +80,87 @@ export class VisualizerRenderer {
           const noteColor = note.color || settings.rightHandColor;
           const secondaryColor = note.secondaryColor || '#ffffff';
 
-          // Grim Cat Stardust Dissolve Effect (continuous winding dust stream)
-          if (settings.dissolveMode === 'stardust') {
-            this.particleSystem.emitDissolvingStardust(
-              keyX,
-              strikeY,
-              keyW,
-              noteColor,
-              secondaryColor,
-              note.velocity,
-              settings.stardustIntensity,
-              settings.stardustSwirl,
-              settings.stardustLifetime
-            );
-          }
+          const isInitialHit = !this.lastTriggeredNoteIds.has(note.id);
 
-          // Trigger initial collision impact
-          if (!this.lastTriggeredNoteIds.has(note.id)) {
+          if (isInitialHit) {
             this.lastTriggeredNoteIds.add(note.id);
 
-            if (settings.showParticles) {
-              this.particleSystem.emitStrikeBurst(
+            // Initial Hit Bursts
+            if (settings.dissolveMode === 'sparks') {
+              this.particleSystem.emitExplosiveSparks(
                 keyX,
                 strikeY,
                 keyW,
                 noteColor,
                 secondaryColor,
                 note.velocity,
-                settings.particleDensity,
-                settings.particleSpeed,
-                settings.particleLifetime,
-                settings.particleSize
+                Math.round(settings.particleDensity * 0.9),
+                settings.particleSpeed
+              );
+            } else if (settings.dissolveMode === 'stardust') {
+              this.particleSystem.emitStardust(
+                keyX,
+                strikeY,
+                keyW,
+                noteColor,
+                secondaryColor,
+                note.velocity,
+                Math.round(6 * settings.stardustIntensity),
+                settings.stardustSwirl,
+                settings.stardustLifetime
+              );
+            } else if (settings.dissolveMode === 'smoke') {
+              this.particleSystem.emitSmoke(
+                keyX,
+                strikeY,
+                keyW,
+                noteColor,
+                note.velocity,
+                3
               );
             }
-          } else if (settings.showParticles) {
-            this.particleSystem.emitSustainEmber(keyX, strikeY, keyW, noteColor, note.velocity);
+          } else {
+            // Sustained emission (strictly throttled for 60 FPS performance)
+            if (settings.dissolveMode === 'stardust' && Math.random() < 0.22) {
+              this.particleSystem.emitStardust(
+                keyX,
+                strikeY,
+                keyW,
+                noteColor,
+                secondaryColor,
+                note.velocity,
+                1,
+                settings.stardustSwirl,
+                settings.stardustLifetime
+              );
+            } else if (settings.dissolveMode === 'smoke' && Math.random() < 0.14) {
+              this.particleSystem.emitSmoke(
+                keyX,
+                strikeY,
+                keyW,
+                noteColor,
+                note.velocity,
+                1
+              );
+            } else if (settings.dissolveMode === 'sparks' && Math.random() < 0.15) {
+              this.particleSystem.emitExplosiveSparks(
+                keyX,
+                strikeY,
+                keyW,
+                noteColor,
+                secondaryColor,
+                note.velocity,
+                2,
+                0.7
+              );
+            }
           }
         }
       }
     }
 
     // Cleanup old note IDs
-    if (this.lastTriggeredNoteIds.size > 250) {
+    if (this.lastTriggeredNoteIds.size > 300) {
       this.lastTriggeredNoteIds.clear();
       for (const [_, note] of currentActiveNotes) {
         this.lastTriggeredNoteIds.add(note.id);
@@ -150,7 +190,7 @@ export class VisualizerRenderer {
       this.renderStrikeLine(ctx, strikeY, width, settings, currentActiveNotes);
     }
 
-    // 5. Update & Render Particle Physics (Sparks + Stardust)
+    // 5. Update & Render Particle Physics (Zero shadowBlur - ultra fast)
     this.particleSystem.update(dt, settings.particleGravity);
     this.particleSystem.render(ctx, settings.particleBlendMode);
 
@@ -188,7 +228,7 @@ export class VisualizerRenderer {
 
     // Studio Gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-    bgGrad.addColorStop(0, '#0c0714'); // subtle dark purple-black
+    bgGrad.addColorStop(0, '#0c0714');
     bgGrad.addColorStop(0.65, '#050309');
     bgGrad.addColorStop(1, '#020104');
     ctx.fillStyle = bgGrad;
@@ -196,7 +236,7 @@ export class VisualizerRenderer {
   }
 
   /**
-   * Renders falling notes with selected style (Crystal Facet, Neon Capsule, Glass, Minimal)
+   * Renders falling notes with selected style
    */
   private renderNoteBatch(
     ctx: CanvasRenderingContext2D,
@@ -259,20 +299,16 @@ export class VisualizerRenderer {
 
       ctx.fill();
 
-      // --- STYLE-SPECIFIC ENHANCEMENTS ---
-
-      // 1. Crystal Facet Style (Grim Cat Signature)
+      // Style-specific facets and highlights
       if (style === 'crystal' && noteHeight > 8) {
-        this.renderCrystalFacets(ctx, noteX, actualTopY, noteWidth, noteHeight, note.pitch, primary);
+        this.renderCrystalFacets(ctx, noteX, actualTopY, noteWidth, noteHeight, note.pitch);
       }
 
-      // 2. Glass Style (Frosted glass border highlight)
       if (style === 'glass') {
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.stroke();
       } else if (style !== 'minimal') {
-        // Standard sleek 3D highlight edge
         ctx.lineWidth = 1.0;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.stroke();
@@ -283,8 +319,7 @@ export class VisualizerRenderer {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(noteX, actualBottomY - 3, noteWidth, 3);
 
-        // Disintegration glow sparks along the bottom edge
-        if (settings.dissolveMode === 'stardust') {
+        if (settings.dissolveMode === 'stardust' || settings.dissolveMode === 'smoke') {
           ctx.fillStyle = primary;
           ctx.fillRect(noteX - 1, actualBottomY - 5, noteWidth + 2, 2);
         }
@@ -295,7 +330,7 @@ export class VisualizerRenderer {
   }
 
   /**
-   * Renders diamond / crystal facet refractions (Grim Cat Piano aesthetic)
+   * Renders diamond crystal facet refractions
    */
   private renderCrystalFacets(
     ctx: CanvasRenderingContext2D,
@@ -303,18 +338,16 @@ export class VisualizerRenderer {
     y: number,
     width: number,
     height: number,
-    seed: number,
-    color: string
+    seed: number
   ) {
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, 4);
-    ctx.clip(); // Keep facets strictly inside the note
+    ctx.clip();
 
     const facetHeight = Math.min(width * 1.5, 24);
     const numRows = Math.ceil(height / facetHeight);
 
-    // Deterministic pseudo-random based on seed
     const pseudoRandom = (val: number) => Math.abs(Math.sin(seed * 9301 + val * 49297) % 1);
 
     for (let row = 0; row < numRows; row++) {
@@ -325,13 +358,13 @@ export class VisualizerRenderer {
 
       const glint = pseudoRandom(row * 7 + 1);
 
-      // Upper facet triangle (specular glint)
+      // Upper facet triangle
       ctx.beginPath();
       ctx.moveTo(x, rowY);
       ctx.lineTo(x + width, rowY);
       ctx.lineTo(midX, midY);
       ctx.closePath();
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + glint * 0.45})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + glint * 0.4})`;
       ctx.fill();
 
       // Left diamond facet
@@ -340,7 +373,7 @@ export class VisualizerRenderer {
       ctx.lineTo(midX, midY);
       ctx.lineTo(x, nextY);
       ctx.closePath();
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.08 + glint * 0.25})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.08 + glint * 0.2})`;
       ctx.fill();
 
       // Right diamond facet
@@ -361,16 +394,16 @@ export class VisualizerRenderer {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
       ctx.fill();
 
-      // Crisp diamond vertex lines
+      // Diamond vertex lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.lineWidth = 0.5;
       ctx.stroke();
     }
 
-    // Bright vertical central refraction core
+    // Bright vertical refraction core
     ctx.beginPath();
     ctx.rect(x + width * 0.4, y, width * 0.2, height);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.fill();
 
     ctx.restore();
