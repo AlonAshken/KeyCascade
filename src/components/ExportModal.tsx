@@ -25,6 +25,7 @@ import {
   VisualSettings,
 } from '../types/visualizer';
 import { videoExporter } from '../services/videoExporter';
+import { audioSynth, audioBufferToWav } from '../services/audioSynth';
 import { formatTime } from '../utils/formatTime';
 
 interface ExportModalProps {
@@ -47,13 +48,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const [resolution, setResolution] = useState<ExportResolution>('1080p');
   const [fps, setFps] = useState<60 | 30>(60);
   const [format, setFormat] = useState<ExportFormat>('mp4');
-  const [includeAudio, setIncludeAudio] = useState(true);
+  const [includeAudio, setIncludeAudio] = useState(false);
   const [exportFullSong, setExportFullSong] = useState(true);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(duration);
   const [customFileName, setCustomFileName] = useState('');
   const [destinationFileHandle, setDestinationFileHandle] = useState<any | null>(null);
   const [savedLocationMsg, setSavedLocationMsg] = useState<string | null>(null);
+  const [isExportingAudio, setIsExportingAudio] = useState(false);
+  const [audioDownloadedMsg, setAudioDownloadedMsg] = useState<string | null>(null);
 
   // Synchronize duration when song changes or modal opens
   useEffect(() => {
@@ -122,6 +125,34 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           console.warn('File picker error:', err);
         }
       }
+    }
+  };
+
+  /**
+   * Export lossless synchronized 44.1kHz WAV piano track for use in external editors
+   */
+  const handleExportAudioTrack = async () => {
+    setIsExportingAudio(true);
+    setAudioDownloadedMsg(null);
+    try {
+      const audioBuffer = await audioSynth.renderOfflineAudio(notes, duration, 44100);
+      const wavBlob = audioBufferToWav(audioBuffer);
+      const cleanTitle = (songTitle || 'Piano_Track').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const wavFileName = `KeyCascade_${cleanTitle}_Audio.wav`;
+
+      const url = URL.createObjectURL(wavBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = wavFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setAudioDownloadedMsg(`Saved "${wavFileName}" (Lossless 44.1kHz WAV)!`);
+    } catch (err: any) {
+      console.warn('Audio export error:', err);
+    } finally {
+      setIsExportingAudio(false);
     }
   };
 
@@ -524,48 +555,37 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 )}
               </div>
 
-              {/* Audio Mode: MIDI Sound vs Video Only */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Audio Output
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIncludeAudio(true)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      includeAudio
-                        ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md shadow-cyan-500/20'
-                        : 'bg-[#141828] border-[#22283e] text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <div className="font-bold text-xs flex items-center gap-1.5 text-cyan-300">
-                      <Music className="w-3.5 h-3.5" />
-                      <span>MIDI Sound</span>
+              {/* Video Only Mode Banner + Optional Lossless WAV Export */}
+              <div className="p-3.5 bg-[#121626] border border-[#232840] rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
+                      <Video className="w-3.5 h-3.5" />
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
-                      Fast synchronized piano audio
+                    <div>
+                      <span className="text-xs font-bold text-white block">Video Mode: 60 FPS Visuals (Mute)</span>
+                      <span className="text-[10px] text-slate-400">Pure visual waterfall video for YouTube, Premiere, CapCut, or DaVinci Resolve</span>
                     </div>
-                  </button>
+                  </div>
+                </div>
 
+                {/* Optional Synchronized Audio Export */}
+                <div className="pt-2 border-t border-[#1f2334] flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">Need the synchronized piano audio track?</span>
                   <button
                     type="button"
-                    onClick={() => setIncludeAudio(false)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      !includeAudio
-                        ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md shadow-cyan-500/20'
-                        : 'bg-[#141828] border-[#22283e] text-slate-400 hover:text-white'
-                    }`}
+                    onClick={handleExportAudioTrack}
+                    disabled={isExportingAudio}
+                    className="px-3 py-1.5 rounded-lg bg-[#181d2e] hover:bg-[#222940] border border-[#2e3752] text-[11px] font-semibold text-cyan-300 hover:text-cyan-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                    title="Downloads an uncompressed 16-bit 44.1kHz WAV piano audio track to drop onto your video editor timeline"
                   >
-                    <div className="font-bold text-xs flex items-center gap-1.5 text-slate-200">
-                      <VolumeX className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Video Only (Mute)</span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
-                      Silent export for video editor overlays
-                    </div>
+                    <Music className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{isExportingAudio ? 'Rendering WAV...' : 'Export Audio (.wav)'}</span>
                   </button>
                 </div>
+                {audioDownloadedMsg && (
+                  <p className="text-[10px] text-emerald-400 font-mono">✓ {audioDownloadedMsg}</p>
+                )}
               </div>
 
               <div className="p-2.5 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300 flex items-start gap-2">
