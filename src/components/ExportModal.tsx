@@ -100,6 +100,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     const actualStart = exportFullSong ? 0 : Math.max(0, startTime);
     const actualEnd = exportFullSong ? duration : Math.min(duration, Math.max(actualStart + 1.0, endTime));
 
+    console.log(`Starting export: ${actualStart}s to ${actualEnd}s (${Math.round(actualEnd - actualStart)}s) @ ${fps} FPS`);
+
     const config: ExportConfig = {
       resolution,
       width: resDims.width,
